@@ -1,6 +1,7 @@
 import os
 import glob
 import pandas as pd
+import spacy
 
 def load_dataset(data_dir):
     data = []
@@ -24,11 +25,20 @@ def load_dataset(data_dir):
 
     return df
 
+def preprocess_text(texts, nlp):
+    processed_texts = []
+    for doc in nlp.pipe(texts, batch_size=100):
+        tokens = [token.lemma_ for token in doc if token.is_alpha and not token.is_stop]
+        processed_texts.append(" ".join(tokens))
+    return processed_texts
+
 if __name__ == "__main__":
+    nlp = spacy.load("en_core_web_sm")
+
     dataset_dir = input("Podaj ścieżkę do katalogu Large Movie Review Dataset: ")
     train_data = load_dataset(os.path.join(dataset_dir, "train"))
     test_data = load_dataset(os.path.join(dataset_dir, "test"))
-    print("Załadowano dane treningowe:")
-    print(train_data.head())
-    print("Załadowano dane testowe:")
-    print(test_data.head())
+
+    train_data["review"] = preprocess_text(train_data["review"], nlp)
+    test_data["review"] = preprocess_text(test_data["review"], nlp)
+
