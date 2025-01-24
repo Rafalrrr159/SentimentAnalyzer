@@ -39,13 +39,9 @@ def preprocess_text(texts, nlp):
 def sentiment_analysis(dataset_dir):
     nlp = spacy.load("en_core_web_sm")
 
-    train_data = load_dataset(os.path.join(dataset_dir, "train"))
-    test_data = load_dataset(os.path.join(dataset_dir, "test"))
-
-    #train_data["review"] = preprocess_text(train_data["review"], nlp)
-    #test_data["review"] = preprocess_text(test_data["review"], nlp)
-
     if not os.path.exists("processed_train.csv"):
+        train_data = load_dataset(os.path.join(dataset_dir, "train"))
+        test_data = load_dataset(os.path.join(dataset_dir, "test"))
         train_data["review"] = preprocess_text(train_data["review"], nlp)
         test_data["review"] = preprocess_text(test_data["review"], nlp)
         train_data.to_csv("processed_train.csv", index=False)
@@ -53,6 +49,9 @@ def sentiment_analysis(dataset_dir):
     else:
         train_data = pd.read_csv("processed_train.csv")
         test_data = pd.read_csv("processed_test.csv")
+
+    # train_data["review"] = preprocess_text(train_data["review"], nlp)
+    # test_data["review"] = preprocess_text(test_data["review"], nlp)
 
     vectorizer = TfidfVectorizer(max_features=5000)
     X_train = vectorizer.fit_transform(train_data["review"])
