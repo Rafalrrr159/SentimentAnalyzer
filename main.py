@@ -89,7 +89,7 @@ def sentiment_analysis(dataset_dir):
         }]),
         "NaiveBayes": (MultinomialNB(), [
         {
-            "alpha": [1.2, 0.8, 0.5, 0.2],
+            "alpha": [1.2, 1.0, 0.8, 0.5, 0.2],
             "fit_prior": [True, False]
         }]),
         "LinearSVC": (LinearSVC(max_iter=2000), [
