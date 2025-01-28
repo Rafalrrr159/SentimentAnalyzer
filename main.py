@@ -6,6 +6,7 @@ import pandas as pd
 import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, HashingVectorizer
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
 from sklearn.metrics import accuracy_score
 import pickle
 from sklearn.model_selection import ParameterGrid
@@ -90,6 +91,11 @@ def sentiment_analysis(dataset_dir):
         {
             "alpha": [1.2, 0.8, 0.5, 0.2],
             "fit_prior": [True, False]
+        }]),
+        "LinearSVC": (LinearSVC(max_iter=2000), [
+        {
+            "penalty": ["l1", "l2"],
+            "C": [0.8, 1.0, 1.2],
         }])
     }
 
