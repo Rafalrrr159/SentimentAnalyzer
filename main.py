@@ -1,5 +1,7 @@
 import os
 import glob
+from pickle import FALSE
+
 import pandas as pd
 import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, HashingVectorizer
@@ -7,6 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 import pickle
 from sklearn.model_selection import ParameterGrid
+from sklearn.naive_bayes import MultinomialNB
 
 
 def load_dataset(data_dir):
@@ -68,7 +71,7 @@ def sentiment_analysis(dataset_dir):
                 "ngram_range": [(1, 1), (1, 2)]
             }
         ]),
-        "HashingVectorizer": (HashingVectorizer(), [
+        "HashingVectorizer": (HashingVectorizer(alternate_sign=False), [
             {
                 "n_features": [500, 1000],
                 "ngram_range": [(1, 1), (1, 2)]
@@ -82,6 +85,11 @@ def sentiment_analysis(dataset_dir):
             "penalty": ["l1", "l2"],
             "C": [0.8, 1.0, 1.2],
             "solver": ["liblinear", "saga"]
+        }]),
+        "NaiveBayes": (MultinomialNB(), [
+        {
+            "alpha": [1.2, 0.8, 0.5, 0.2],
+            "fit_prior": [True, False]
         }])
     }
 
