@@ -4,9 +4,9 @@ import pickle
 
 @st.cache_resource
 def load_model_and_vectorizer():
-    with open("tfidf_vectorizer.pkl", "rb") as vec_file:
+    with open("TF-IDF_max_features_1000_ngram_range_(1_2).pkl", "rb") as vec_file:
         vectorizer = pickle.load(vec_file)
-    with open("logistic_model.pkl", "rb") as model_file:
+    with open("TF-IDF_max_features_1000_ngram_range_(1_2)_LogisticRegression_C=0.8_penalty=l2_solver=liblinear.pkl", "rb") as model_file:
         classifier = pickle.load(model_file)
     return vectorizer, classifier
 
