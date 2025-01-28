@@ -1,18 +1,29 @@
+import fnmatch
+import os
 import streamlit as st
 import spacy
 import pickle
 
 @st.cache_resource
-def load_model_and_vectorizer():
-    with open("TF-IDF_max_features_1000_ngram_range_(1_2).pkl", "rb") as vec_file:
+def load_model_and_vectorizer(a_vectorizer_file_name, a_classifier_file_name):
+    with open(a_vectorizer_file_name, "rb") as vec_file:
         vectorizer = pickle.load(vec_file)
-    with open("TF-IDF_max_features_1000_ngram_range_(1_2)_LogisticRegression_C=0.8_penalty=l2_solver=liblinear.pkl", "rb") as model_file:
+    with open(a_classifier_file_name, "rb") as model_file:
         classifier = pickle.load(model_file)
     return vectorizer, classifier
 
 @st.cache_resource
 def load_spacy_model():
     return spacy.load("en_core_web_sm")
+
+def file_selector(folder_path='.', a_fnmatch='*', a_label='Select a file'):
+    filenames = os.listdir(folder_path)
+    filtered_filenames = []
+    for fn in filenames:
+        if fnmatch.fnmatch(fn, a_fnmatch):
+            filtered_filenames.append(fn)
+    selected_filename = st.selectbox(a_label, filtered_filenames)
+    return os.path.join(folder_path, selected_filename)
 
 def preprocess_text(text, nlp):
     doc = nlp(text)
@@ -32,12 +43,17 @@ def main():
         unsafe_allow_html=True
     )
     st.markdown(
-        "<p style='text-align: center;'>Analizuj sentyment swojej recenzji za pomocą modelu regresji logistycznej!</p>",
+        "<p style='text-align: center;'>Analizuj sentyment swojej recenzji za pomocą modelu różnych klasyfikatorów!</p>",
         unsafe_allow_html=True
     )
 
-    vectorizer, classifier = load_model_and_vectorizer()
     nlp = load_spacy_model()
+
+    vectorizer_name = file_selector("vectorizers/", a_label="Wybierz wektoryzator:")
+    st.write('Wybbrałeś wektoryzator: `%s`' % vectorizer_name)
+
+    classifier_name = file_selector("models/", '*' + vectorizer_name[12:-4] + '*', "Wybierz klasyfikator:")
+    st.write('Wybrałeś klasyfikator: `%s`' % classifier_name)
 
     review = st.text_area(
         "Wpisz recenzję filmu:",
@@ -47,6 +63,7 @@ def main():
 
     if st.button("🔍 Analizuj sentyment"):
         if review.strip():
+            vectorizer, classifier = load_model_and_vectorizer(vectorizer_name, classifier_name)
             sentiment = analyze_sentiment(review, vectorizer, classifier, nlp)
             if sentiment == "Pozytywny":
                 st.success("🎉 Sentyment recenzji: **Pozytywny** 🎉")
@@ -70,6 +87,7 @@ def main():
         st.write("Oto przykładowe recenzje, które możesz przetestować:")
         for example in examples:
             st.write(f"- {example}")
+
 
 if __name__ == "__main__":
     main()

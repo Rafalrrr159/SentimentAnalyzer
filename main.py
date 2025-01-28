@@ -110,7 +110,7 @@ def sentiment_analysis(dataset_dir):
 
             vectorizer_filename = f"{vec_name}_{vec_params}.pkl".replace(":", "").replace("{", "").replace(
                 "}", "").replace("'", "").replace(",", "").replace(" ", "_")
-            with open(vectorizer_filename, "wb") as vec_file:
+            with open("vectorizers/" + vectorizer_filename, "wb") as vec_file:
                 pickle.dump(vectorizer, vec_file)
 
             for clf_name, (clf, params_grid) in classifiers.items():
@@ -133,7 +133,7 @@ def sentiment_analysis(dataset_dir):
                     params_str = "_".join([f"{key}={value}" for key, value in params.items()])
                     model_name = f"{vec_name}_{vec_params}_{clf_name}_{params_str}.pkl".replace(":", "").replace("{", "").replace(
                         "}", "").replace("'", "").replace(",", "").replace(" ", "_")
-                    with open(model_name, "wb") as file:
+                    with open("models/" + model_name, "wb") as file:
                         pickle.dump(model, file)
 
                     all_results.append({
@@ -151,8 +151,8 @@ def sentiment_analysis(dataset_dir):
                     })
 
     all_results_df = pd.DataFrame(all_results)
-    all_results_df.to_csv("all_results.csv", index=False)
-    print("Wszystkie wyniki zapisano do pliku 'all_results.csv'.")
+    all_results_df.to_csv("results/all_results.csv", index=False)
+    print("Wszystkie wyniki zapisano do pliku 'results/all_results.csv'.")
     return all_results_df
 
 if __name__ == "__main__":
