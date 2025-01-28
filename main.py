@@ -10,6 +10,8 @@ import pickle
 from sklearn.model_selection import ParameterGrid
 from sklearn.naive_bayes import MultinomialNB
 
+def read_results():
+    return pd.read_csv("results/all_results.csv")
 
 def load_dataset(data_dir):
     data = []

@@ -3,6 +3,7 @@ import os
 import streamlit as st
 import spacy
 import pickle
+from main import read_results
 
 @st.cache_resource
 def load_model_and_vectorizer(a_vectorizer_file_name, a_classifier_file_name):
@@ -88,6 +89,12 @@ def main():
         for example in examples:
             st.write(f"- {example}")
 
+    st.markdown(
+        "<br/> <p style='text-align: center;'>Ranking klasyfikatorów:</p>",
+        unsafe_allow_html=True
+    )
+
+    st.dataframe(read_results())
 
 if __name__ == "__main__":
     main()
