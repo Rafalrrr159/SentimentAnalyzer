@@ -40,7 +40,22 @@ def preprocess_text(texts, nlp):
         processed_texts.append(" ".join(tokens))
     return processed_texts
 
+def make_dir(directory_name):
+    try:
+        os.mkdir(directory_name)
+        print(f"Directory '{directory_name}' created successfully.")
+    except FileExistsError:
+        print(f"Directory '{directory_name}' already exists.")
+    except PermissionError:
+        print(f"Permission denied: Unable to create '{directory_name}'.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
 def sentiment_analysis(dataset_dir):
+    make_dir("models")
+    make_dir("vectorizers")
+    make_dir("results")
+
     nlp = spacy.load("en_core_web_sm")
 
     if not os.path.exists("processed_train.csv"):

@@ -50,7 +50,7 @@ def main():
     nlp = load_spacy_model()
 
     vectorizer_name = file_selector("vectorizers/", a_label="Wybierz wektoryzator:")
-    st.write('Wybbrałeś wektoryzator: `%s`' % vectorizer_name)
+    st.write('Wybrałeś wektoryzator: `%s`' % vectorizer_name)
 
     classifier_name = file_selector("models/", '*' + vectorizer_name[12:-4] + '*', "Wybierz klasyfikator:")
     st.write('Wybrałeś klasyfikator: `%s`' % classifier_name)
