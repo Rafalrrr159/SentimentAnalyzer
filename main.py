@@ -2,10 +2,12 @@ import os
 import glob
 import pandas as pd
 import spacy
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, HashingVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 import pickle
+from sklearn.model_selection import ParameterGrid
+
 
 def load_dataset(data_dir):
     data = []
@@ -50,44 +52,87 @@ def sentiment_analysis(dataset_dir):
         train_data = pd.read_csv("processed_train.csv")
         test_data = pd.read_csv("processed_test.csv")
 
-    # train_data["review"] = preprocess_text(train_data["review"], nlp)
-    # test_data["review"] = preprocess_text(test_data["review"], nlp)
+    X_train, y_train = train_data["review"], train_data["sentiment"]
+    X_test, y_test = test_data["review"], test_data["sentiment"]
 
-    vectorizer = TfidfVectorizer(max_features=5000)
-    X_train = vectorizer.fit_transform(train_data["review"])
-    X_test = vectorizer.transform(test_data["review"])
-    y_train = train_data["sentiment"]
-    y_test = test_data["sentiment"]
+    vectorizers = {
+        "TF-IDF": (TfidfVectorizer(), [
+            {
+                "max_features": [500, 1000],
+                "ngram_range": [(1, 1), (1, 2)]
+            }
+        ]),
+        "CountVectorizer": (CountVectorizer(), [
+            {
+                "max_features": [500, 1000],
+                "ngram_range": [(1, 1), (1, 2)]
+            }
+        ]),
+        "HashingVectorizer": (HashingVectorizer(), [
+            {
+                "n_features": [500, 1000],
+                "ngram_range": [(1, 1), (1, 2)]
+            }
+        ])
+    }
 
-    classifier = LogisticRegression(max_iter=100)
-    classifier.fit(X_train, y_train)
+    classifiers = {
+        "LogisticRegression": (LogisticRegression(max_iter=2000), [
+        {
+            "penalty": ["l1", "l2"],
+            "C": [0.8, 1.0, 1.2],
+            "solver": ["liblinear", "saga"]
+        }])
+    }
 
-    with open("tfidf_vectorizer.pkl", "wb") as vec_file:
-        pickle.dump(vectorizer, vec_file)
+    all_results = []
+    for vec_name, (vectorizer, vec_params_grid) in vectorizers.items():
+        print(f"Przetwarzanie wektorów za pomocą {vec_name}")
+        for vec_params in ParameterGrid(vec_params_grid):
+            print(f"Przetwarzanie wektorów za pomocą {vec_name} z parametrami: {vec_params}")
 
-    with open("logistic_model.pkl", "wb") as model_file:
-        pickle.dump(classifier, model_file)
+            vectorizer.set_params(**vec_params)
 
-    y_pred = classifier.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Dokładność modelu: {accuracy:.2f}")
+            X_train = vectorizer.fit_transform(train_data["review"])
+            X_test = vectorizer.transform(test_data["review"])
 
-    print("\nSzczegóły predykcji dla danych testowych:")
-    results = pd.DataFrame({
-        "id": test_data["id"],
-        "review": test_data["review"],
-        "true_sentiment": test_data["sentiment"],
-        "predicted_sentiment": y_pred
-    })
-    for i, row in results.head(10).iterrows():
-        true_sent = "Positive" if row["true_sentiment"] == 1 else "Negative"
-        pred_sent = "Positive" if row["predicted_sentiment"] == 1 else "Negative"
-        print(f"ID: {row['id']}")
-        print(f"Review: {row['review'][:200]}...")
-        print(f"True Sentiment: {true_sent}, Predicted Sentiment: {pred_sent}\n")
+            vectorizer_filename = f"{vec_name}_{vec_params}.pkl".replace(":", "").replace("{", "").replace(
+                "}", "").replace("'", "").replace(",", "").replace(" ", "_")
+            with open(vectorizer_filename, "wb") as vec_file:
+                pickle.dump(vectorizer, vec_file)
 
-    return vectorizer, classifier, accuracy
+            for clf_name, (clf, params_grid) in classifiers.items():
+                print(f"Testowanie: {vec_name} + {vec_params} + {clf_name}")
+
+                for params in ParameterGrid(params_grid):
+                    model = clf.set_params(**params)
+                    model.fit(X_train, y_train)
+
+                    train_accuracy = accuracy_score(y_train, model.predict(X_train))
+                    test_accuracy = accuracy_score(y_test, model.predict(X_test))
+
+                    params_str = "_".join([f"{key}={value}" for key, value in params.items()])
+                    model_name = f"{vec_name}_{vec_params}_{clf_name}_{params_str}.pkl".replace(":", "").replace("{", "").replace(
+                        "}", "").replace("'", "").replace(",", "").replace(" ", "_")
+                    with open(model_name, "wb") as file:
+                        pickle.dump(model, file)
+
+                    all_results.append({
+                        "Vectorizer": vec_name,
+                        "Vectorizer parameters": vec_params,
+                        "Classifier": clf_name,
+                        "Classifier parameters": params,
+                        "Train Accuracy": train_accuracy,
+                        "Test Accuracy": test_accuracy,
+                        "Model File": model_name
+                    })
+
+    all_results_df = pd.DataFrame(all_results)
+    all_results_df.to_csv("all_results.csv", index=False)
+    print("Wszystkie wyniki zapisano do pliku 'all_results.csv'.")
+    return all_results_df
 
 if __name__ == "__main__":
     dataset_dir = input("Podaj ścieżkę do katalogu Large Movie Review Dataset: ")
-    vectorizer, classifier, accuracy = sentiment_analysis(dataset_dir)
+    #vectorizer, classifier, accuracy = sentiment_analysis(dataset_dir)
+    results = sentiment_analysis(dataset_dir)
