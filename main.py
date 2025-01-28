@@ -1,13 +1,11 @@
 import os
 import glob
-from pickle import FALSE
-
 import pandas as pd
 import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, HashingVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score
 import pickle
 from sklearn.model_selection import ParameterGrid
 from sklearn.naive_bayes import MultinomialNB
@@ -122,8 +120,15 @@ def sentiment_analysis(dataset_dir):
                     model = clf.set_params(**params)
                     model.fit(X_train, y_train)
 
-                    train_accuracy = accuracy_score(y_train, model.predict(X_train))
-                    test_accuracy = accuracy_score(y_test, model.predict(X_test))
+                    y_train_pred = model.predict(X_train)
+                    y_test_pred = model.predict(X_test)
+
+                    train_accuracy = accuracy_score(y_train, y_train_pred)
+                    test_accuracy = accuracy_score(y_test, y_test_pred)
+                    train_precision = precision_score(y_train, y_train_pred)
+                    test_precision = precision_score(y_test, y_test_pred)
+                    train_recall = recall_score(y_train, y_train_pred)
+                    test_recall = recall_score(y_test, y_test_pred)
 
                     params_str = "_".join([f"{key}={value}" for key, value in params.items()])
                     model_name = f"{vec_name}_{vec_params}_{clf_name}_{params_str}.pkl".replace(":", "").replace("{", "").replace(
@@ -138,6 +143,10 @@ def sentiment_analysis(dataset_dir):
                         "Classifier parameters": params,
                         "Train Accuracy": train_accuracy,
                         "Test Accuracy": test_accuracy,
+                        "Train Precision": train_precision,
+                        "Test Precision": test_precision,
+                        "Train Recall": train_recall,
+                        "Test Recall": test_recall,
                         "Model File": model_name
                     })
 
