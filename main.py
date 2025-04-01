@@ -63,6 +63,7 @@ def sentiment_analysis(dataset_dir):
     if not os.path.exists("processed_train.csv"):
         train_data = load_dataset(os.path.join(dataset_dir, "train"))
         test_data = load_dataset(os.path.join(dataset_dir, "test"))
+        test_data.to_csv("test_reviews.csv", index=False)
         train_data["review"] = preprocess_text(train_data["review"], nlp)
         test_data["review"] = preprocess_text(test_data["review"], nlp)
         train_data.to_csv("processed_train.csv", index=False)
@@ -164,7 +165,8 @@ def sentiment_analysis(dataset_dir):
                         "Test Precision": test_precision,
                         "Train Recall": train_recall,
                         "Test Recall": test_recall,
-                        "Model File": model_name
+                        "Classifier Model File": model_name,
+                        "Vectorizer Model File": vectorizer_filename
                     })
 
     all_results_df = pd.DataFrame(all_results)
@@ -174,5 +176,4 @@ def sentiment_analysis(dataset_dir):
 
 if __name__ == "__main__":
     dataset_dir = input("Podaj ścieżkę do katalogu Large Movie Review Dataset: ")
-    #vectorizer, classifier, accuracy = sentiment_analysis(dataset_dir)
     results = sentiment_analysis(dataset_dir)
